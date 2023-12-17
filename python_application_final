@@ -1,0 +1,288 @@
+import mysql.connector
+
+def admin_interface():
+    pass
+
+def data_entry():
+    print("\nThe database can be modified by the following operations.")
+    print("1 - Update data")
+    print("2 - Insert data")
+    print("3 - Delete data")
+    print("4 - Information Lookup")
+    operation = input("Select the operation you would like to execute (press 0 to exit): ")
+
+    while(int(operation)):
+        if int(operation) == 1:
+            update(cur, cnx)
+        elif int(operation) == 2:
+            insert(cur, cnx)
+        elif int(operation) == 3:
+            delete(cur, cnx)
+        elif int(operation) == 4:
+            info_search(cur, cnx)
+            return
+        else:
+            break
+        operation = input("\nSelect another operation (press 0 to exit): ")
+    
+    if int(operation) == 0:
+        return
+
+def info_search(cur, cnx):
+    print("\nThe following tables can be searched for:")
+    print("1 - Paintings")
+    print("2 - Sculptures")
+    print("3 - Other Pieces")
+    print("4 - Artists")
+    print("5 - Exhibitions")
+    selection = int(input("Select a table to display (press 0 to exit): "))
+
+    while(selection):
+        if selection == 1:
+            paintings_info(cur)
+        elif selection == 2:
+            sculptures_info(cur)
+        elif selection == 3:
+            other_info(cur)
+        elif selection == 4:
+            artist_info(cur)
+        elif selection == 5:
+            exhibition_info(cur)
+        else:
+            break
+        selection = int(input("\nSelect another operation (press 0 to exit): "))
+    
+    if selection == 0:
+        return
+
+def insert(cur, cnx):
+    print("Insertion allowed on Artist and Collections table. An error message is due to duplicate data or invalid syntax.")
+    cur.execute("show tables")
+    for (table_name,) in cur:
+        print(table_name, end="    ")
+    table_name = input("\nSelect the table name to insert into: ")
+    cur.execute(f"select column_name, data_type from information_schema.columns where table_name='{table_name}'")
+    columns = [], input_val = [], values = []
+    for (column_name, data_type,) in cur:
+        columns.append(column_name)
+        input_val.append(data_type)
+
+    for i in range(len(columns)):
+        if(input_val[i] == 'int'):
+            values.append(input(f"\nEnter a value for {columns[i]}, (press ENTER if none): ") or None)
+        elif(input_val[i] == 'char'):
+            values.append(input(f"\nEnter a value for {columns[i]} (press ENTER if none): ") or None)
+        else:
+            values.append(input(f"\nEnter a value for {columns[i]}, (press ENTER if none): ") or None)
+
+    val = [""]
+    for i in range(len(columns)):
+        if (values[i] is None):
+            val.append("null")
+        else:
+            val.append(f"\'{values[i]}\'")
+
+    try:
+        cur.execute("insert into {} values ({})".format(table_name, val))
+        print("Insert operation was successful.")
+    except mysql.connector.errors.IntegrityError:
+        print("Insert unsuccessful due to foreign key constraint.")
+    except mysql.connector.errors.ProgrammingError:
+        print("Invalid syntax. Insert was unsuccessful.")
+
+
+def delete(cur, cnx):
+    table_name = input("Enter the table name to delete from: ")
+    attribute = input("Enter the attribute to delete: ")
+    value = str(input("Enter the value of your selected attribute to delete: "))
+    try:
+        cur.execute(f"delete from {table_name} where {attribute}='{value}'")
+        cnx.commit()
+        print("Delete of tuple was successful.")
+    except mysql.connector.errors.ProgrammingError:
+        print("Invalid syntax. Delete was unsuccessful.")
+    except mysql.connector.errors.IntegrityError:
+        print("Delete unsuccessful due to foreign key constraint.")
+
+def update(cur, cnx):
+    update_table = input("Enter the table name you would like to update: ")
+    update_set = input("Enter the attributes and their values: ")
+    update_where = input("Enter the tuples you would like to modify: ")
+    try:
+        cur.execute(f"Update {update_table} set {update_set} where {update_where}")
+        cnx.commit()
+        print('Your table has been updated successfully.')
+    except mysql.connector.errors.ProgrammingError:
+        print("Invalid syntax. Update was unsuccessful.")
+    except mysql.connector.errors.IntegrityError:
+        print("Update unsuccessful due to foreign key constraint.")
+
+def guest_interface():
+    print("\nThis is a list of what you can browse.")
+    print("1 - Art Pieces")
+    print("2 - Artists")
+    print("3 - Exhibitions")
+    selection = int(input("Select what you are looking for (press 0 to exit): "))
+
+    while(selection):
+        if selection == 1:
+            subselection = input("Enter 1 for Sculptures, 2 for Paintings, and 3 for Other Pieces: ")
+            if subselection == '1':
+                sculptures_info(cur)
+            elif subselection == '2':
+                paintings_info(cur)
+            else:
+                other_info(cur)
+        elif selection == 2:
+            artist_info(cur)
+        elif selection == 3:
+            exhibition_info(cur) 
+        else:
+            break  
+        selection = int(input("\nEnter another selection to browse (press 0 to exit): "))
+
+    if selection == 0:
+        return
+
+def exhibition_info(cur):
+    instruction = 'select Start_date, End_date, Art_Desc, Cost, Status, Title from exhibitions join permanent_collection join artobj where exhibitions.ItemID = permanent_collection.CollectID and exhibitions.ItemID = artobj.ArtID'
+    cur.execute(instruction)
+    columns = cur.column_names
+    search_result = cur.fetchall()
+    print("\nSearch found ", len(search_result), " entries: \n")
+    header_size = len(columns)
+    for i in range(header_size):
+        print("{:<20s}".format(columns[i]), end = '')
+    print()
+    print(25*header_size*'-')
+    for row in search_result:
+        for val in row:
+            print("{:<20s}".format(str(val)), end = '')
+        print()
+
+def artist_info(cur):
+    instruction = ''
+    search = input("Enter the Artist name you are looking for (press ENTER to view all): ") or None
+    if search == None:
+        instruction = 'select Name, Birthdate, Date_died, Country_of_origin, Artist_Desc from artist'
+        cur.execute(instruction)
+    else:
+        instruction = "select Name, Birthdate, Date_died, Country_of_origin, Artist_Desc from artist where Name = %(Name)s"
+        cur.execute(instruction, {'Name':search})
+
+    columns = cur.column_names
+    search_result = cur.fetchall()
+    print("\nSearch found ", len(search_result), " entries: \n")
+    header_size = len(columns)
+    for i in range(header_size):
+        print("{:<30s}".format(columns[i]), end = '')
+    print()
+    print(30*header_size*'-')
+    for row in search_result:
+        for val in row:
+            print("{:<30s}".format(str(val)), end = '')
+        print()
+
+def other_info(cur):
+    instruction = ''
+    search = input("Enter the ArtID you are looking for (press ENTER to view all): ") or None
+    if search == None:
+            instruction = 'select objType, Style, Art_yr, Artist, Title from artobj join other where artobj.ArtID = other.oID'
+            cur.execute(instruction)
+    else:
+        instruction = "select objType, Style, Art_yr, Artist, Title from artobj join other where ArtID = %(artid)s and artobj.ArtID = other.oID"
+        cur.execute(instruction, {'artid':search})
+
+    columns = cur.column_names
+    search_result = cur.fetchall()
+    print("\nSearch found ", len(search_result), " entries: \n")
+    header_size = len(columns)
+    for i in range(header_size):
+        print("{:<30s}".format(columns[i]), end = '')
+    print()
+    print(30*header_size*'-')
+    for row in search_result:
+        for val in row:
+            print("{:<30s}".format(str(val)), end = '')
+        print()
+
+def paintings_info(cur):
+    instruction = ''
+    search = input("Enter the ArtID you are looking for (press ENTER to view all): ") or None
+
+    if search == None:
+        instruction = 'select Paint_type, Draw_on, Style, Artist, Title from artobj join painting where artobj.ArtID = painting.pID'
+        cur.execute(instruction)
+    else:
+        instruction = "select Paint_type, Draw_on, Style, Artist, Title from artobj join painting where ArtID = %(artid)s and artobj.ArtID = painting.pID"
+        cur.execute(instruction, {'artid':search})
+
+    columns = cur.column_names
+    search_result = cur.fetchall()
+    print("\nSearch found ", len(search_result), " entries: \n")
+    header_size = len(columns)
+    for i in range(header_size):
+        print("{:<25s}".format(columns[i]), end = '')
+    print()
+    print(30*header_size*'-')
+    for row in search_result:
+        for val in row:
+            print("{:<25s}".format(str(val)), end = '')
+        print()
+
+def sculptures_info(cur):
+    instruction = ''
+    search = input("Enter the ArtID you are looking for (press ENTER to view all): ") or None
+    if search == None:
+        instruction = 'select Material, Height, Weight, Style, Artist, Title from artobj join sculpture where artobj.ArtID = sculpture.sID'
+        cur.execute(instruction)
+    else:
+        instruction = "select Material, Height, Weight, Style, Artist, Title from artobj join sculpture where ArtID = %(artid)s and artobj.ArtID = sculpture.sID"
+        cur.execute(instruction, {'artid':search})
+    
+    columns = cur.column_names
+    search_result = cur.fetchall()
+    print("\nSearch found ", len(search_result), " entries: \n")
+    header_size = len(columns)
+    for i in range(header_size):
+        print("{:<25s}".format(columns[i]), end = '')
+    print()
+    print(30*header_size*'-')
+    for row in search_result:
+        for val in row:
+            print("{:<25s}".format(str(val)), end = '')
+        print()
+
+if __name__ == "__main__":
+    print("Welcome to the Art Database!")
+    print("1 - DB Admin")
+    print("2 - Data Entry")
+    print("3 - Browse as Guest")
+
+    selection = input("Please select your role from the above list: ")
+
+    if selection in ['1','2']:
+        username = input("Username: ")
+        passcode = input("Password: ")
+    else:
+        username = "guest"
+        passcode = None
+
+    cnx = mysql.connector.connect(
+        host = "127.0.0.1",
+        port = 3306,
+        user = username,
+        password = passcode)
+    
+    cur = cnx.cursor(buffered = True)
+    cur.execute("use artdatabase")
+
+    if selection == '1':
+        admin_interface()
+    elif selection == '2':
+        data_entry()
+    elif selection == '3':
+        guest_interface()
+    
+    print("\nThank you for using this application.")
+    cnx.close()
