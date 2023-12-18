@@ -256,33 +256,42 @@ def sculptures_info(cur):
 if __name__ == "__main__":
     print("Welcome to the Art Database!")
     print("1 - DB Admin")
-    print("2 - Data Entry")
-    print("3 - Browse as Guest")
+    print("2 - Browse as Guest")
 
-    selection = input("Please select your role from the above list: ")
+    while True:
+        selection = input("Please select your role from the above list: ")
 
-    if selection in ['1','2']:
-        username = input("Username: ")
-        passcode = input("Password: ")
-    else:
-        username = "guest"
-        passcode = None
+        if selection == '1':
+            username = input("Username: ")
+            passcode = input("Password: ")
+            break
+        elif selection == '2':
+            username = "guest"
+            passcode = None 
+            break
+        else:
+            print("Invalid Selection. Please try again.")
 
     cnx = mysql.connector.connect(
-        host = "127.0.0.1",
-        port = 3306,
-        user = username,
-        password = passcode)
-    
-    cur = cnx.cursor(buffered = True)
-    cur.execute("use artdatabase")
+        host="localhost",
+        port=3306,
+        user=username,
+        password=passcode,
+        database="artdatabase"
+    )
 
-    if selection == '1':
-        admin_interface()
-    elif selection == '2':
-        data_entry()
-    elif selection == '3':
-        guest_interface()
+    try:
+        cur = cnx.cursor(buffered=True)
+        cur.execute("use artdatabase")
+
+        if selection == '1':
+            data_entry() 
+        elif selection == '2':
+            guest_interface() 
+
+    except mysql.connector.errors.DatabaseError as e:
+        print(f"Database connection error: {e}")
     
-    print("\nThank you for using this application.")
-    cnx.close()
+    finally:
+        cnx.close()
+        print("\nThank you for using this application.")

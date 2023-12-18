@@ -3,23 +3,6 @@ DROP DATABASE IF EXISTS ARTDATABASE;
 CREATE DATABASE ARTDATABASE; 
 USE ARTDATABASE;
 
-DROP TABLE IF EXISTS ARTOBJ;
-CREATE TABLE ARTOBJ (
-	ArtID					varchar(30)	not null,
-	Description				varchar(30)	not null,
-	Title					varchar(30)	not null,
-    Artist					varchar(30),
-	Art_yr					integer,
-	Origin					varchar(30)	not null,
-	Epoch					varchar(30)	not null,
-	primary key (ArtID)
-	foreign key (Artist) references ARTIST(Name)
-);
-
-INSERT INTO ARTOBJ (ArtID, Description, Title, Artist, Art_yr, Origin, Epoch)
-VALUES
-('111222333','Painting','Elizabeth I (The Hampden Portrait)','George Gower', '1567', 'London', 'Renaissance');
-
 DROP TABLE IF EXISTS ARTIST;
 CREATE TABLE ARTIST (
 	Name					varchar(30)	not null,
@@ -35,6 +18,23 @@ CREATE TABLE ARTIST (
 INSERT INTO ARTIST (Name, Birthdate, Date_died, Country_of_origin, Main_style, Epoch, Description)
 VALUES
 ('George Gower','Null Null, 1540','August 30, 1596','London', null, 'Renaissance', 'Portrait Painter');
+
+DROP TABLE IF EXISTS ARTOBJ;
+CREATE TABLE ARTOBJ (
+	ArtID					varchar(30)	not null,
+	Description				varchar(30)	not null,
+	Title					varchar(30)	not null,
+    Artist					varchar(30),
+	Art_yr					integer,
+	Origin					varchar(30)	not null,
+	Epoch					varchar(30)	not null,
+	primary key (ArtID),
+	foreign key (Artist) references ARTIST(Name)
+);
+
+INSERT INTO ARTOBJ (ArtID, Description, Title, Artist, Art_yr, Origin, Epoch)
+VALUES
+('111222333','Painting','Elizabeth I (The Hampden Portrait)','George Gower', '1567', 'London', 'Renaissance');
 
 DROP TABLE IF EXISTS COLLECTIONS;
 CREATE TABLE COLLECTIONS (
@@ -108,8 +108,24 @@ CREATE TABLE EXHIBITIONS (
 
 DROP TABLE IF EXISTS KEPT_IN;
 CREATE TABLE KEPT_IN (
-	ArtID					varchar(30)	not null,
-	Collect_name			varchar(30)	not null,
-	foreign key (ArtID) references ARTOBJ(ArtID)
-	foreign key (Collect_name) references COLLECTIONS(Name)
+    ArtID 					varchar(30) not null,
+    Collect_name 			varchar(30) not null,
+    foreign KEY (ArtID) references ARTOBJ(ArtID),
+    foreign key (Collect_name) references COLLECTIONS(Name)
 );
+
+
+DROP USER IF EXISTS 'admin'@'localhost';
+DROP USER IF EXISTS 'guest'@'localhost';
+
+-- Creating Admin User
+CREATE USER 'admin'@'localhost' IDENTIFIED BY '';
+GRANT ALL PRIVILEGES ON ARTDATABASE.* TO 'admin'@'localhost' WITH GRANT OPTION;
+
+-- Creating Guest User
+CREATE USER 'guest'@'localhost';
+GRANT SELECT ON artdatabase.* TO 'guest'@'localhost';
+
+GRANT CREATE USER, RELOAD ON *.* TO 'admin'@'localhost';
+
+FLUSH PRIVILEGES;
