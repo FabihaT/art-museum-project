@@ -1,12 +1,6 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-c66648af7eb3fe8bc4f294546bfd86ef473780cde1dea487d3c4ff354943c9ae.svg)](https://classroom.github.com/online_ide?assignment_repo_id=9540552&assignment_repo_type=AssignmentRepo)
-# Museum-Project
-## To Do list:
-- modify this file to include your group members information and tasks assigned per each
-- modify this file to include any notes on how to use and run the program
-- include any features you have added beyond the minimum requirements in a features list
+# Art Museum Project
+This is a Python-based application designed to manage and interact with an art-themed database provided by a MySQL backend. This is designed using a modular structure with separate files for organization and maintainability. The flow was designed with a simple and interactive command-line interface. This system provides two primary user interfaces: an administrative interface and a guest browsing interface.
 
-## Organization:
-- code folder: contains your main python application code
-- sql scripts folder: contains all sql scripts required (database creation and initialization, sql script with query tasks in the handout, etc...)
-- database design folder: EERD and relational schema
-- optional data folder: has data files that you can sue to load data to your application if you use this optional implementation requirement
+## Features:
+- As a guest, you can browse information from a selection of tables stored in the art database.
+- As an admin, you must login with MySQL credentials and select a table to modify. Key admin functions are inserting, updating, and deleting data.
