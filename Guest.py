@@ -1,28 +1,33 @@
 from DBTables import *
 
 def guest_interface(cur):
-    print("\nThis is a list of what you can browse.")
-    print("1 - Art Pieces")
-    print("2 - Artists")
-    print("3 - Exhibitions")
-    selection = int(input("Select what you are looking for (press 0 to exit): "))
+    while True:  # Start of the main loop
+        print("\nThis is a list of what you can browse.")
+        print("1 - Art Pieces")
+        print("2 - Artists")
+        print("3 - Exhibitions")
+        print("0 - Exit")
+        selection = int(input("Select what you are looking for: "))
 
-    while(selection):
+        if selection == 0:
+            return
+
         if selection == 1:
-            subselection = input("Enter 1 for Sculptures, 2 for Paintings, and 3 for Other Pieces: ")
-            if subselection == '1':
-                sculptures_info(cur)
-            elif subselection == '2':
-                paintings_info(cur)
-            else:
-                other_info(cur)
+            while True:
+                subselection = input("Enter 1 for Sculptures, 2 for Paintings, and 3 for Other Pieces (0 to go back): ")
+                if subselection == '1':
+                    sculptures_info(cur)
+                elif subselection == '2':
+                    paintings_info(cur)
+                elif subselection == '3':
+                    other_info(cur)
+                elif subselection == '0':
+                    break  # Return to the main menu
+                else:
+                    print("Invalid selection. Please try again.")
         elif selection == 2:
             artist_info(cur)
         elif selection == 3:
-            exhibition_info(cur) 
+            exhibition_info(cur)
         else:
-            break  
-        selection = int(input("\nEnter another selection to browse (press 0 to exit): "))
-
-    if selection == 0:
-        return
+            print("Invalid selection. Please try again.")
