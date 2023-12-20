@@ -1,4 +1,5 @@
 import mysql.connector
+from getpass import getpass
 from Guest import guest_interface
 from Admin import admin_interface
 
@@ -12,7 +13,7 @@ def main():
 
         if selection == '1':
             username = input("Username: ")
-            passcode = input("Password: ")
+            passcode = getpass("Password: ")
             break
         elif selection == '2':
             username = "guest"
